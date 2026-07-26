@@ -80,6 +80,15 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   sigrefs. Duplicate votes by one delegate count once; invalid or unauthorized
   signatures are ignored; different commits both reaching quorum is an
   explicit split-quorum error rather than an arrival-order choice.
+- **`nekko.ref-event`** — the Datom-authoritative bridge: signs and admits
+  causal peer-ref events carrying `old`, `new`, `prev`, `seq`, and the Git
+  closure manifest. Each DID/ref namespace advances independently; admission
+  verifies signature, delegate membership, contiguous history, old-target
+  continuity, and an injected bonsai closure check before projection.
+- **`nekko.canonical-projection`** — materializes canonical refs from current
+  peer namespaces and delegate threshold. Canonical, unresolved, and split-
+  quorum outcomes produce deterministic IPLD receipts containing every input
+  event CID; network arrival order is never a tie-breaker.
 
 `kotoba-rad` only ever deals in plain CID strings for refs/commits (never a
 `kotoba-git` object directly), so the two repos stay decoupled — either can
@@ -118,6 +127,9 @@ system's ref updates, not just `kotoba-git`'s.
   predicate, no dependency from `kotoba-git` back onto this repo), but
   nothing yet adds richer policy on top (required reviewers, branch
   naming rules, etc.).
+- **No Git remote helper yet.** The signed peer-ref and canonical Datom core is
+  implemented, but `git-remote-kotoba` ref-list/fetch/push and pack negotiation
+  remain the G3 application/CLI layer.
 
 ## Usage
 
