@@ -1,8 +1,8 @@
-(ns kotoba-rad.canonical-test
+(ns nekko.canonical-test
   (:require [clojure.test :refer [deftest is]]
             [ed25519.core :as ed]
-            [kotoba-rad.canonical :as canonical]
-            [kotoba-rad.sigref :as sigref]))
+            [nekko.canonical :as canonical]
+            [nekko.sigref :as sigref]))
 
 (def seeds [(byte-array (repeat 32 (byte 1)))
             (byte-array (repeat 32 (byte 2)))
