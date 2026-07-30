@@ -67,6 +67,25 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   long-lived factor secret and recurs on every rewrap, so copying the zero iv
   here would reuse (key, iv) and break GCM. A test asserts that two wraps of
   identical inputs differ.
+- **`nekko.key-journal`** — a signed, hash-chained history of one mailbox's key
+  events, so a server that swaps the published mailbox public key is *detected*
+  rather than trusted (cloud-itonami ADR-0038's sharpest residual risk). One
+  32-byte root secret, generated client-side and living only inside
+  `nekko.keyslot` ciphertext, derives both halves by HKDF: the X25519 mailbox
+  key and the Ed25519 seed that signs every entry. So any device that opens one
+  keyslot derives the journal public key **itself** and verifies the chain from
+  genesis — it never has to be told which signer to trust, which is exactly what
+  a malicious server would want to tell it. The server holds no keyslot and so
+  cannot produce an entry that verifies. `extends-pinned?` covers the other
+  attack a forger-proof chain still allows: serving a *truncated* history to undo
+  a revocation. Chaining and CIDs are `nekko.journal`/`chain.core`; this adds
+  only the signature layer. Client-only on purpose, like `keyslot`. Ed25519 is
+  `@noble/curves` rather than `ed25519.core`, whose cljs branch needs
+  node:crypto and so cannot run in a browser. **Tested under real
+  ClojureScript, not nbb** (`npm run test:cljs`): `chain.core`'s non-genesis
+  commits encode `prev` as an `ipld` deftype whose field sci cannot read, so
+  under nbb every commit after genesis throws — an nbb limitation, not a browser
+  one, and the real consumer is a browser bundle anyway.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
