@@ -2,6 +2,6 @@
   "private": true,
   "scripts": {
     "test": "clojure -M:test",
-    "test:async": "nbb --classpath src:test -e \"(require '[nekko.recipient-grant-async-test])\""
+    "test:async": "nbb --classpath src:test -e \"(require '[nekko.recipient-grant-async-test])\" && nbb --classpath src:test -e \"(require '[nekko.keyslot-test])\""
   }
 }
