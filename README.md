@@ -85,7 +85,10 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   ClojureScript, not nbb** (`npm run test:cljs`): `chain.core`'s non-genesis
   commits encode `prev` as an `ipld` deftype whose field sci cannot read, so
   under nbb every commit after genesis throws — an nbb limitation, not a browser
-  one, and the real consumer is a browser bundle anyway.
+  one, and the real consumer is a browser bundle anyway. That suite runs from a
+  bare clone; getting there meant bumping all seven git pins, which were
+  collectively stale enough that the git-dep path did not work at all under
+  cljs while the west workspace did.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
