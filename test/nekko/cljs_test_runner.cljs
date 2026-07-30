@@ -10,10 +10,14 @@
   one, and the actual consumer is a browser bundle, so this host is the more
   faithful one anyway.
 
-  Needs the west workspace: `:local` overrides the `io-multiformats` git pin,
-  which is stale in a way real ClojureScript rejects outright ('Only one
-  :require form is allowed per namespace definition' — sci tolerates it, cljs
-  does not). It also needs `npm install` for @noble/*.
+  Runs from a bare clone — it needs only `npm install` for @noble/*, no west
+  workspace. That took fixing the actual cause rather than working around it:
+  all seven of this repo's git pins were behind their mains, and the pinned
+  `io-multiformats` had two `:require` forms in one ns, which sci tolerates and
+  cljs rejects outright. Bumping one pin then surfaced a second skew (the
+  pinned `org-ietf-cbor` could not decode what the newer ipld produced), so the
+  pins had to move together. `:local` is no longer required here; if you find
+  yourself adding it back, the pins have gone stale again.
 
   Run: npm run test:cljs"
   (:require [cljs.test :as t :refer-macros [run-tests]]
