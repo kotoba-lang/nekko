@@ -52,3 +52,23 @@
                         (rg/open (get-in e2 [:grants (:pub alice)]) (:priv alice))))
           (is (b/equal? (b/unhex (:key e1))
                         (rg/open (get-in e1 [:grants (:pub bob)]) (:priv bob)))))))))
+
+(deftest webcrypto-sealed-grant-opens-here
+  (testing "a grant sealed by SubtleCrypto (browser / Cloudflare Worker) opens
+            on this host: the wire format is the contract, not an
+            implementation detail of whoever did the sealing"
+    ;; Sealed 2026-07-30 by nekko.recipient-grant-async, then verified against
+    ;; JCA and node:crypto before being frozen here. TEST VECTOR ONLY -- this
+    ;; private key protects nothing and never did. Its job is to fail loudly if
+    ;; the wrap-key digest, the zero-iv convention, or the X25519 DER prefixes
+    ;; are ever changed, since a cross-host break is otherwise invisible until
+    ;; production mail stops opening.
+    (let [g {:v 1 :epoch 42
+             :recipient "422f2aadee7fe93d2b5cdefad753e97e487c578e8be52f7f3e79b6f8191f9d20"
+             :eph "0b5c044ec7d2b552bb6e7e467853eb94adeff373e8c4ab475dac40992685fa5c"
+             :iv "000000000000000000000000"
+             :ct (str "e25d1b4ce2684e5a69c1400aa2327e6a572d6a4587b23c2b"
+                      "00a8e36ac55b346adbc69cbe7191787967fc498df9798636")}
+          priv "30df693344e826538851f08272e70c3a47a9b5ce63e378c2c0228f3c83df6f43"]
+      (is (= "b68d734647a63bbb9a2372886727c35fde3f842f95f4cde1685697a10099fbc6"
+             (b/hexify (rg/open g priv)))))))
