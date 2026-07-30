@@ -38,6 +38,21 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   grant. X25519 + AES-256-GCM are synchronous on both hosts (JCA on the JVM,
   node:crypto on nbb), cross-verified: a grant sealed on one host opens on
   the other.
+- **`nekko.recipient-grant-async`** — the same grant for hosts whose only
+  crypto is *asynchronous* SubtleCrypto: browsers, Cloudflare Workers, and
+  node's WebCrypto. Every fn returns a `js/Promise`; the wire format is
+  identical (same X25519 DER prefixes, the same `SHA-256(shared || info)` wrap
+  key — not HKDF — and the same 12-byte zero iv with `ciphertext||tag`). It
+  exists as a sibling rather than a branch because the sync namespace's
+  primitives are synchronous by construction and `nekko.bytes` reaches for
+  `js/Buffer` + node:crypto, neither of which a browser has; for that reason
+  this namespace carries its own byte helpers and requires nothing.
+  `test/nekko/recipient_grant_async_test.cljs` (`npm run test:async`, the
+  first coverage of any kind over the :cljs branch) proves both directions
+  under nbb — the one runtime with both backends live — and a
+  WebCrypto-sealed fixture is frozen into the JVM suite so `clojure -M:test`
+  guards the format too. Verified 2026-07-30 on all three hosts: JCA,
+  node:crypto and WebCrypto open each other's grants.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
