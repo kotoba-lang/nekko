@@ -89,6 +89,18 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   bare clone; getting there meant bumping all seven git pins, which were
   collectively stale enough that the git-dep path did not work at all under
   cljs while the west workspace did.
+- **`nekko.recovery-code`** — the keyslot factor a person keeps on paper: 128
+  bits as 26 Crockford base32 characters plus a check character, grouped in
+  fives. Crockford because it is built for transcription — I, L and O are not
+  in the alphabet and read back as 1, 1 and 0, so the classic confusions decode
+  correctly instead of failing. The check character exists for a specific
+  cruelty a keyslot would otherwise inflict: a slot answers only "did this open
+  it", identically for a wrong code and a mistyped one, so without a checksum a
+  fat-fingered character is indistinguishable from "your mail is gone". It is
+  a position-weighted sum mod 37, weighted so transposing two characters does
+  not cancel out. Portable `.cljc` with no host crypto — randomness is injected
+  by the caller, so the JVM and the browser produce the same code and the tests
+  are deterministic.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
