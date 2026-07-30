@@ -53,6 +53,20 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   WebCrypto-sealed fixture is frozen into the JVM suite so `clojure -M:test`
   guards the format too. Verified 2026-07-30 on all three hosts: JCA,
   node:crypto and WebCrypto open each other's grants.
+- **`nekko.keyslot`** — wrap one long-lived secret under N independent *unlock
+  factors*, so any one opens it and losing one loses nothing: a mailbox's
+  X25519 private key held under one slot per enrolled WebAuthn PRF credential
+  plus a recovery code (cloud-itonami ADR-0038). HKDF-SHA-256 per slot with a
+  fresh random salt, AES-256-GCM with a fresh random iv, and the non-secret
+  factor id bound in as `additionalData` so whoever *stores* slots cannot
+  relabel or transplant one. **Client-only on purpose — there is no `.cljc`
+  sibling and there should not be one**, because a server-side unwrap path is
+  exactly the capability zero-access removes. Note the deliberate difference
+  from `recipient-grant`: that one's zero iv is safe because its key is a
+  single-use ephemeral ECDH output, whereas a keyslot key is derived from a
+  long-lived factor secret and recurs on every rewrap, so copying the zero iv
+  here would reuse (key, iv) and break GCM. A test asserts that two wraps of
+  identical inputs differ.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
