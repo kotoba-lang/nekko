@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "test": "clojure -M:test",
-    "test:async": "nbb --classpath src:test -e \"(require '[nekko.recipient-grant-async-test])\" && nbb --classpath src:test -e \"(require '[nekko.keyslot-test])\"",
+    "test:async": "nbb --classpath src:test -e \"(require '[nekko.recipient-grant-async-test])\" && nbb --classpath src:test -e \"(require '[nekko.keyslot-test])\" && nbb --classpath src:test -e \"(require '[nekko.private-object-async-test])\"",
     "test:cljs": "clojure -M:cljs -m cljs.main --target node -d target/out -m nekko.cljs-test-runner"
   },
   "dependencies": {
