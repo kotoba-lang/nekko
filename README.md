@@ -108,6 +108,16 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   bytes hash back to it). A peer without an epoch-key grant can replicate the
   ciphertext but never read it. This is R2's classical confidentiality; the
   R4 PQ target (hybrid X25519+ML-KEM) layers over the same grant shape.
+- **`nekko.private-object-async`** — the same envelope for hosts whose only
+  crypto is asynchronous SubtleCrypto, which for cloud-itonami means the
+  Cloudflare Email Worker: the one place a message is ever in the clear. Same
+  `{:epoch :plaintext-cid :iv :ct}` byte for byte, so an object sealed by the
+  Worker opens on the JVM drain and vice versa — proven both directions under
+  nbb rather than assumed. `plaintext-cid` earns its keep here: the GCM tag
+  proves nobody edited the ciphertext, but proves nothing about which plaintext
+  the sealer *meant*, and anyone holding the content key can produce a
+  perfectly valid envelope around a message they wrote. A test does exactly
+  that and asserts the refusal.
 - **`kotoba-rad.bytes`** — portable byte/hex/AES helpers (JVM byte-array /
   nbb Uint8Array), the R2 crypto's host seam.
 - **`kotoba-rad.push-gate`** — `authorize-push?`, a pure predicate
