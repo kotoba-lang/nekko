@@ -28,7 +28,7 @@
   Client-only, like `nekko.keyslot`, and for the same reason: a server able to
   sign key events is the capability being removed. `ed25519.core`'s cljs branch
   targets node:crypto and so cannot run in a browser or a Worker, so Ed25519
-  here is `@noble/curves/ed25519.js` — pure JS, synchronous, and already this
+  here is the `noble/curves` ed25519 module -- pure JS, synchronous, and already this
   workspace's browser-side curve (org-signal uses the same import). Chaining
   and CIDs come from `nekko.journal`/`chain.core`, whose SHA-256 reaches
   `@noble/hashes` on cljs and is likewise browser-safe: this namespace adds a
@@ -38,6 +38,10 @@
   and `get-fn` (cid -> bytes) — so the caller decides whether entries live in
   KV, D1 or memory. This namespace never assumes the store is honest; every
   read is CID-verified by `chain.core` and signature-verified here."
+  ;; `derive` shadows cljs.core/derive, which every consumer's build warns
+  ;; about. Excluding it says the shadowing is deliberate and silences a
+  ;; warning that would otherwise train readers to ignore warnings.
+  (:refer-clojure :exclude [derive])
   (:require [ipld.core :as ipld]
             [nekko.journal :as journal]
             [nekko.recipient-grant-async :as rga]
@@ -77,7 +81,7 @@
 
   `:x25519-priv` is what `nekko.recipient-grant-async/open` takes and
   `:x25519-pub` is what an inbound sealer seals to. Note the two are produced by
-  DIFFERENT implementations — the public half by `@noble/curves` here, the
+  DIFFERENT implementations -- the public half by `noble/curves` here, the
   private half consumed by WebCrypto over there — so a disagreement between
   them would silently produce mail nobody can open. `key_journal_test` seals a
   real grant to `:x25519-pub` and opens it with `:x25519-priv` to pin that
