@@ -21,10 +21,16 @@
 
   Run: npm run test:cljs"
   (:require [cljs.test :as t :refer-macros [run-tests]]
-            [nekko.key-journal-test]))
+            [nekko.delegate-test]
+            [nekko.journal-test]
+            [nekko.key-journal-test]
+            [nekko.push-gate-test]))
 
 (defmethod t/report [:cljs.test/default :end-run-tests] [m]
   (set! (.-exitCode js/process) (if (t/successful? m) 0 1)))
 
 (defn -main [& _]
-  (run-tests 'nekko.key-journal-test))
+  (run-tests 'nekko.delegate-test
+             'nekko.journal-test
+             'nekko.key-journal-test
+             'nekko.push-gate-test))
