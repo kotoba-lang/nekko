@@ -1,14 +1,15 @@
 (ns nekko.cacao-delegate-test
   (:require [clojure.test :refer [deftest is testing]]
+  [nekko.bytes :as nb]
             [cacao.core :as cacao]
             [ed25519.core :as ed]
             [nekko.cacao-delegate :as cd]))
 
-(def owner-seed (byte-array (range 32)))
-(def delegate-a-seed (byte-array (map #(mod (+ % 1) 256) (range 32))))
-(def delegate-b-seed (byte-array (map #(mod (+ % 2) 256) (range 32))))
-(def delegate-c-seed (byte-array (map #(mod (+ % 4) 256) (range 32))))
-(def outsider-seed (byte-array (map #(mod (+ % 3) 256) (range 32))))
+(def owner-seed (nb/->ba (range 32)))
+(def delegate-a-seed (nb/->ba (map #(mod (+ % 1) 256) (range 32))))
+(def delegate-b-seed (nb/->ba (map #(mod (+ % 2) 256) (range 32))))
+(def delegate-c-seed (nb/->ba (map #(mod (+ % 4) 256) (range 32))))
+(def outsider-seed (nb/->ba (map #(mod (+ % 3) 256) (range 32))))
 
 (def owner-did (ed/did-key-from-seed owner-seed))
 (def delegate-a-did (ed/did-key-from-seed delegate-a-seed))

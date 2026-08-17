@@ -1,12 +1,13 @@
 (ns nekko.canonical-test
   (:require [clojure.test :refer [deftest is]]
+  [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.canonical :as canonical]
             [nekko.sigref :as sigref]))
 
-(def seeds [(byte-array (repeat 32 (byte 1)))
-            (byte-array (repeat 32 (byte 2)))
-            (byte-array (repeat 32 (byte 3)))])
+(def seeds [(nb/->ba (repeat 32 1))
+            (nb/->ba (repeat 32 2))
+            (nb/->ba (repeat 32 3))])
 (def delegates (set (map ed/did-key-from-seed seeds)))
 (def policy {:rid "rid-ci" :ref "refs/ci/main" :delegates delegates :threshold 2})
 
@@ -21,7 +22,7 @@
   (is (nil? (canonical/canonical-ref
              policy [(signed (first seeds) "c1" 1)
                      (signed (first seeds) "c1" 2)])))
-  (let [outsider (byte-array (repeat 32 (byte 9)))]
+  (let [outsider (nb/->ba (repeat 32 9))]
     (is (nil? (canonical/canonical-ref
                policy [(signed (first seeds) "c1" 1)
                        (signed outsider "c1" 2)])))))
@@ -32,10 +33,10 @@
     (is (nil? (canonical/canonical-ref policy [valid wrong-ref])))))
 
 (deftest split-quorum-is-explicit-conflict
-  (let [four-seeds (conj seeds (byte-array (repeat 32 (byte 4))))
+  (let [four-seeds (conj seeds (nb/->ba (repeat 32 4)))
         p (assoc policy :delegates (set (map ed/did-key-from-seed four-seeds)))]
     (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo #"conflicting commits reached quorum"
+         #?(:clj Exception :cljs js/Error) #"conflicting commits reached quorum"
          (canonical/canonical-ref
           p [(signed (nth four-seeds 0) "a" 1)
              (signed (nth four-seeds 1) "a" 2)

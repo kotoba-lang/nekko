@@ -1,5 +1,6 @@
 (ns nekko.push-gate-test
   (:require [clojure.test :refer [deftest is testing]]
+  [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [cacao.core :as cacao]
             [nekko.identity :as identity]
@@ -13,9 +14,9 @@
     {:put! (fn [cid bytes] (swap! store assoc cid bytes))
      :get-fn (fn [cid] (get @store cid))}))
 
-(def owner-seed (byte-array (range 32)))
-(def delegate-seed (byte-array (map #(mod (+ % 1) 256) (range 32))))
-(def outsider-seed (byte-array (map #(mod (+ % 3) 256) (range 32))))
+(def owner-seed (nb/->ba (range 32)))
+(def delegate-seed (nb/->ba (map #(mod (+ % 1) 256) (range 32))))
+(def outsider-seed (nb/->ba (map #(mod (+ % 3) 256) (range 32))))
 
 (deftest owner-signed-push-is-authorized
   (let [{:keys [put! get-fn]} (new-store)
@@ -127,7 +128,7 @@
 
 ;; ---------- authorize-push-multi-cacao? (quorum / separation of duties) ----------
 
-(def second-delegate-seed (byte-array (map #(mod (+ % 5) 256) (range 32))))
+(def second-delegate-seed (nb/->ba (map #(mod (+ % 5) 256) (range 32))))
 
 (defn- wildcard-chain [aud-did]
   [(:cacao-b64 (cacao/mint {:seed owner-seed :aud aud-did :nonce "n1"

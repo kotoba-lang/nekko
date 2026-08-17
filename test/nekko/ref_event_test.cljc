@@ -1,13 +1,14 @@
 (ns nekko.ref-event-test
   (:require [arrangement.core :as arr]
             [clojure.test :refer [deftest is testing]]
+            [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.canonical-projection :as canonical]
             [nekko.ref-event :as event]))
 
-(def alice-seed (byte-array (repeat 32 (byte 1))))
-(def bob-seed (byte-array (repeat 32 (byte 2))))
-(def carol-seed (byte-array (repeat 32 (byte 3))))
+(def alice-seed (nb/->ba (repeat 32 1)))
+(def bob-seed (nb/->ba (repeat 32 2)))
+(def carol-seed (nb/->ba (repeat 32 3)))
 (def alice (ed/did-key-from-seed alice-seed))
 (def bob (ed/did-key-from-seed bob-seed))
 (def carol (ed/did-key-from-seed carol-seed))
@@ -41,7 +42,7 @@
 
 (deftest admission-fails-closed
   (let [db (arr/empty-db)
-        outsider (signed-event (byte-array (repeat 32 (byte 9))) "commit-x")
+        outsider (signed-event (nb/->ba (repeat 32 9)) "commit-x")
         valid (signed-event alice-seed "commit-a")]
     (is (= :unauthorized
            (try (event/admit db delegates (constantly true) outsider)
@@ -69,7 +70,7 @@
     (is (= "canonical" (get (canonical/receipt db-a (:receipt-cid result-a)) "status")))))
 
 (deftest split-quorum-clears-stale-canonical-target
-  (let [four-seeds [alice-seed bob-seed carol-seed (byte-array (repeat 32 (byte 4)))]
+  (let [four-seeds [alice-seed bob-seed carol-seed (nb/->ba (repeat 32 4))]
         four-dids (set (map ed/did-key-from-seed four-seeds))
         db (reduce (fn [db [seed commit]]
                      (first (event/admit db four-dids (constantly true)
