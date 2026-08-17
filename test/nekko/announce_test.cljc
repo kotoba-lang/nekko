@@ -1,5 +1,6 @@
 (ns nekko.announce-test
   (:require [clojure.test :refer [deftest is]]
+  [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.identity :as identity]
             [nekko.delegate :as delegate]
@@ -10,9 +11,9 @@
     {:put! (fn [cid bytes] (swap! store assoc cid bytes))
      :get-fn (fn [cid] (get @store cid))}))
 
-(def owner-seed (byte-array (range 32)))
-(def delegate-seed (byte-array (map #(mod (+ % 1) 256) (range 32))))
-(def outsider-seed (byte-array (map #(mod (+ % 3) 256) (range 32))))
+(def owner-seed (nb/->ba (range 32)))
+(def delegate-seed (nb/->ba (map #(mod (+ % 1) 256) (range 32))))
+(def outsider-seed (nb/->ba (map #(mod (+ % 3) 256) (range 32))))
 
 (defn- p2p-announce [graph head-cid seq]
   {:type :head-announce :graph graph :head-cid head-cid :seq seq

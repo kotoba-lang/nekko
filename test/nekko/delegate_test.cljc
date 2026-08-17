@@ -1,5 +1,6 @@
 (ns nekko.delegate-test
   (:require [clojure.test :refer [deftest is]]
+  [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.delegate :as delegate]))
 
@@ -11,10 +12,10 @@
 ;; Fixed 32-byte seeds -- deterministic, reproducible test key material.
 ;; Real callers must supply securely-generated random seeds; neither
 ;; ed25519.core nor this repo provides an RNG.
-(def owner-seed (byte-array (range 32)))
-(def delegate-a-seed (byte-array (map #(mod (+ % 1) 256) (range 32))))
-(def delegate-b-seed (byte-array (map #(mod (+ % 2) 256) (range 32))))
-(def outsider-seed (byte-array (map #(mod (+ % 3) 256) (range 32))))
+(def owner-seed (nb/->ba (range 32)))
+(def delegate-a-seed (nb/->ba (map #(mod (+ % 1) 256) (range 32))))
+(def delegate-b-seed (nb/->ba (map #(mod (+ % 2) 256) (range 32))))
+(def outsider-seed (nb/->ba (map #(mod (+ % 3) 256) (range 32))))
 
 (defn- did-of [ed-seed]
   (ed/did-key-from-seed ed-seed))

@@ -1,10 +1,11 @@
 (ns nekko.sigref-test
   (:require [clojure.test :refer [deftest is]]
+  [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.sigref :as sigref]))
 
-(def signer-seed (byte-array (range 32)))
-(def other-seed (byte-array (map #(mod (+ % 5) 256) (range 32))))
+(def signer-seed (nb/->ba (range 32)))
+(def other-seed (nb/->ba (map #(mod (+ % 5) 256) (range 32))))
 
 (deftest sign-and-verify-roundtrip
   (let [sr (sigref/sign signer-seed "rid-1" "refs/heads/main" "commit-1" 1000)]

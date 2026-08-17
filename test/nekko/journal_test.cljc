@@ -1,5 +1,6 @@
 (ns nekko.journal-test
   (:require [clojure.test :refer [deftest is]]
+  [nekko.bytes :as nb]
             [nekko.journal :as journal]))
 
 (defn- new-store []
@@ -26,14 +27,14 @@
         head2 (journal/append! put! get-fn head1 {"kind" "b"})]
     (is (true? (journal/verify get-fn head2)))
     ;; corrupt the stored bytes for an earlier link in the chain
-    (swap! store assoc head1 (byte-array [1 2 3 4]))
+    (swap! store assoc head1 (nb/->ba [1 2 3 4]))
     (is (false? (journal/verify get-fn head2)))))
 
 (deftest tampering-the-head-block-itself-also-breaks-verification
   (let [{:keys [store put! get-fn]} (new-store)
         head1 (journal/append! put! get-fn nil {"kind" "a"})
         head2 (journal/append! put! get-fn head1 {"kind" "b"})]
-    (swap! store assoc head2 (byte-array [1 2 3 4]))
+    (swap! store assoc head2 (nb/->ba [1 2 3 4]))
     (is (false? (journal/verify get-fn head2)))))
 
 (deftest single-entry-journal-round-trips-with-seq-zero
