@@ -22,6 +22,9 @@
          '[nekko.announce-test]
          '[nekko.cacao-delegate-test]
          '[nekko.canonical-test]
+         '[nekko.delegate-test]
+         '[nekko.journal-test]
+         '[nekko.push-gate-test]
          '[nekko.identity-test]
          '[nekko.private-object-test]
          '[nekko.recipient-grant-test]
@@ -36,6 +39,9 @@
              'nekko.announce-test
              'nekko.cacao-delegate-test
              'nekko.canonical-test
+             'nekko.delegate-test
+             'nekko.journal-test
+             'nekko.push-gate-test
              'nekko.identity-test
              'nekko.private-object-test
              'nekko.recipient-grant-test

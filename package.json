@@ -7,6 +7,7 @@
     "test:portable": "nbb --classpath \"src:test:$(clojure -Spath)\" test/run_portable.cljs"
   },
   "dependencies": {
-    "@noble/curves": "^1.9.7"
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "2.0.1"
   }
 }
