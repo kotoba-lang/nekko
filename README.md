@@ -13,6 +13,18 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   of its own genesis block `{did, created}`, using the same `io-ipld`
   DAG-CBOR content-addressing `kotoba-git` uses for objects (one CID scheme
   across both repos, rather than a separate ad-hoc implementation).
+
+  > **This RID is `did:cid` in all but spelling** (measured 2026-08-20, ADR-2608200400).
+  > `did:cid` — a DIF Recommended DID Method — uses `CIDv1(base32, JCS(seed document))`;
+  > an RID is the CID of a DAG-CBOR genesis block. Same construction, different codec
+  > and multibase. So the work of interoperating is a **mapping**, not a second
+  > implementation, and every part it needs is already in the fleet
+  > (`io-multiformats`, `org-ietf-jcs`, `io-ipfs`, `io-filecoin-signer`).
+  >
+  > It is also why an RID is **not** the identity that signs. The CID commits to a
+  > document that contains a `did:key`; the `did:key` is what holds the key. Resolving
+  > an RID needs I/O, so it cannot be the primitive identity of a `kotoba/pure` program
+  > — the same reason `did:cid`, `did:scid` and `did:webvh` are not.
 - **`kotoba-rad.journal`** — an append-only, hash-chained log of identity
   events, built directly on `kotoba-lang/chain`. `chain`'s single-parent,
   opaque-state design is exactly a linear identity journal (as opposed to
