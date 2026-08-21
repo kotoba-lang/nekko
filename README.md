@@ -13,18 +13,6 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   of its own genesis block `{did, created}`, using the same `io-ipld`
   DAG-CBOR content-addressing `kotoba-git` uses for objects (one CID scheme
   across both repos, rather than a separate ad-hoc implementation).
-
-  > **This RID is `did:cid` in all but spelling** (measured 2026-08-20, ADR-2608200400).
-  > `did:cid` — a DIF Recommended DID Method — uses `CIDv1(base32, JCS(seed document))`;
-  > an RID is the CID of a DAG-CBOR genesis block. Same construction, different codec
-  > and multibase. So the work of interoperating is a **mapping**, not a second
-  > implementation, and every part it needs is already in the fleet
-  > (`io-multiformats`, `org-ietf-jcs`, `io-ipfs`, `io-filecoin-signer`).
-  >
-  > It is also why an RID is **not** the identity that signs. The CID commits to a
-  > document that contains a `did:key`; the `did:key` is what holds the key. Resolving
-  > an RID needs I/O, so it cannot be the primitive identity of a `kotoba/pure` program
-  > — the same reason `did:cid`, `did:scid` and `did:webvh` are not.
 - **`kotoba-rad.journal`** — an append-only, hash-chained log of identity
   events, built directly on `kotoba-lang/chain`. `chain`'s single-parent,
   opaque-state design is exactly a linear identity journal (as opposed to
@@ -50,69 +38,6 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   grant. X25519 + AES-256-GCM are synchronous on both hosts (JCA on the JVM,
   node:crypto on nbb), cross-verified: a grant sealed on one host opens on
   the other.
-- **`nekko.recipient-grant-async`** — the same grant for hosts whose only
-  crypto is *asynchronous* SubtleCrypto: browsers, Cloudflare Workers, and
-  node's WebCrypto. Every fn returns a `js/Promise`; the wire format is
-  identical (same X25519 DER prefixes, the same `SHA-256(shared || info)` wrap
-  key — not HKDF — and the same 12-byte zero iv with `ciphertext||tag`). It
-  exists as a sibling rather than a branch because the sync namespace's
-  primitives are synchronous by construction and `nekko.bytes` reaches for
-  `js/Buffer` + node:crypto, neither of which a browser has; for that reason
-  this namespace carries its own byte helpers and requires nothing.
-  `test/nekko/recipient_grant_async_test.cljs` (`npm run test:async`, the
-  first coverage of any kind over the :cljs branch) proves both directions
-  under nbb — the one runtime with both backends live — and a
-  WebCrypto-sealed fixture is frozen into the JVM suite so `clojure -M:test`
-  guards the format too. Verified 2026-07-30 on all three hosts: JCA,
-  node:crypto and WebCrypto open each other's grants.
-- **`nekko.keyslot`** — wrap one long-lived secret under N independent *unlock
-  factors*, so any one opens it and losing one loses nothing: a mailbox's
-  X25519 private key held under one slot per enrolled WebAuthn PRF credential
-  plus a recovery code (cloud-itonami ADR-0038). HKDF-SHA-256 per slot with a
-  fresh random salt, AES-256-GCM with a fresh random iv, and the non-secret
-  factor id bound in as `additionalData` so whoever *stores* slots cannot
-  relabel or transplant one. **Client-only on purpose — there is no `.cljc`
-  sibling and there should not be one**, because a server-side unwrap path is
-  exactly the capability zero-access removes. Note the deliberate difference
-  from `recipient-grant`: that one's zero iv is safe because its key is a
-  single-use ephemeral ECDH output, whereas a keyslot key is derived from a
-  long-lived factor secret and recurs on every rewrap, so copying the zero iv
-  here would reuse (key, iv) and break GCM. A test asserts that two wraps of
-  identical inputs differ.
-- **`nekko.key-journal`** — a signed, hash-chained history of one mailbox's key
-  events, so a server that swaps the published mailbox public key is *detected*
-  rather than trusted (cloud-itonami ADR-0038's sharpest residual risk). One
-  32-byte root secret, generated client-side and living only inside
-  `nekko.keyslot` ciphertext, derives both halves by HKDF: the X25519 mailbox
-  key and the Ed25519 seed that signs every entry. So any device that opens one
-  keyslot derives the journal public key **itself** and verifies the chain from
-  genesis — it never has to be told which signer to trust, which is exactly what
-  a malicious server would want to tell it. The server holds no keyslot and so
-  cannot produce an entry that verifies. `extends-pinned?` covers the other
-  attack a forger-proof chain still allows: serving a *truncated* history to undo
-  a revocation. Chaining and CIDs are `nekko.journal`/`chain.core`; this adds
-  only the signature layer. Client-only on purpose, like `keyslot`. Ed25519 is
-  `@noble/curves` rather than `ed25519.core`, whose cljs branch needs
-  node:crypto and so cannot run in a browser. **Tested under real
-  ClojureScript, not nbb** (`npm run test:cljs`): `chain.core`'s non-genesis
-  commits encode `prev` as an `ipld` deftype whose field sci cannot read, so
-  under nbb every commit after genesis throws — an nbb limitation, not a browser
-  one, and the real consumer is a browser bundle anyway. That suite runs from a
-  bare clone; getting there meant bumping all seven git pins, which were
-  collectively stale enough that the git-dep path did not work at all under
-  cljs while the west workspace did.
-- **`nekko.recovery-code`** — the keyslot factor a person keeps on paper: 128
-  bits as 26 Crockford base32 characters plus a check character, grouped in
-  fives. Crockford because it is built for transcription — I, L and O are not
-  in the alphabet and read back as 1, 1 and 0, so the classic confusions decode
-  correctly instead of failing. The check character exists for a specific
-  cruelty a keyslot would otherwise inflict: a slot answers only "did this open
-  it", identically for a wrong code and a mistyped one, so without a checksum a
-  fat-fingered character is indistinguishable from "your mail is gone". It is
-  a position-weighted sum mod 37, weighted so transposing two characters does
-  not cancel out. Portable `.cljc` with no host crypto — randomness is injected
-  by the caller, so the JVM and the browser produce the same code and the tests
-  are deterministic.
 - **`kotoba-rad.private-object`** (R2) — the object envelope: AES-256-GCM a
   git object's bytes under the epoch key, so the **replicated blob is
   ciphertext** (replication id = ciphertext CID) while the plaintext CID is
@@ -120,16 +45,6 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   bytes hash back to it). A peer without an epoch-key grant can replicate the
   ciphertext but never read it. This is R2's classical confidentiality; the
   R4 PQ target (hybrid X25519+ML-KEM) layers over the same grant shape.
-- **`nekko.private-object-async`** — the same envelope for hosts whose only
-  crypto is asynchronous SubtleCrypto, which for cloud-itonami means the
-  Cloudflare Email Worker: the one place a message is ever in the clear. Same
-  `{:epoch :plaintext-cid :iv :ct}` byte for byte, so an object sealed by the
-  Worker opens on the JVM drain and vice versa — proven both directions under
-  nbb rather than assumed. `plaintext-cid` earns its keep here: the GCM tag
-  proves nobody edited the ciphertext, but proves nothing about which plaintext
-  the sealer *meant*, and anyone holding the content key can produce a
-  perfectly valid envelope around a message they wrote. A test does exactly
-  that and asserts the refusal.
 - **`kotoba-rad.bytes`** — portable byte/hex/AES helpers (JVM byte-array /
   nbb Uint8Array), the R2 crypto's host seam.
 - **`kotoba-rad.push-gate`** — `authorize-push?`, a pure predicate
