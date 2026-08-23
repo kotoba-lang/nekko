@@ -1,8 +1,8 @@
 (ns kotoba-rad.canonical-test
   (:require [clojure.test :refer [deftest is]]
             [ed25519.core :as ed]
-            [kotoba-rad.canonical :as canonical]
-            [kotoba-rad.sigref :as sigref]))
+            [nekko.canonical :as canonical]
+            [nekko.sigref :as sigref]))
 
 (def seeds [(byte-array (repeat 32 (byte 1)))
             (byte-array (repeat 32 (byte 2)))
@@ -35,7 +35,7 @@
   (let [four-seeds (conj seeds (byte-array (repeat 32 (byte 4))))
         p (assoc policy :delegates (set (map ed/did-key-from-seed four-seeds)))]
     (is (thrown-with-msg?
-         clojure.lang.ExceptionInfo #"conflicting commits reached quorum"
+         #?(:clj Exception :cljs js/Error) #"conflicting commits reached quorum"
          (canonical/canonical-ref
           p [(signed (nth four-seeds 0) "a" 1)
              (signed (nth four-seeds 1) "a" 2)
