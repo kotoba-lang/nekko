@@ -27,7 +27,7 @@
   Portable `.cljc` with no host crypto and no host string classes: only
   `generate` needs randomness and the caller supplies it, so the JVM and the
   browser run this unchanged and tests are deterministic."
-  (:require [clojure.string :as str]))
+  (:require [kotoba.lang.text :as str]))
 
 (def ^:private alphabet "0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 (def ^:private check-alphabet "0123456789ABCDEFGHJKMNPQRSTVWXYZ*~$=U")
@@ -45,7 +45,7 @@
   "Crockford's read-back rules: I and L are 1, O is 0. nil for anything else,
   which `parse` reports as a bad character rather than a failed unlock."
   [c]
-  (let [c (str/upper-case (str c))]
+  (let [c (str/upper (str c))]
     (case c
       ("I" "L") 1
       "O" 0
@@ -92,7 +92,7 @@
 (defn normalize
   "Strip what people add, uppercase what they lowercase."
   [code]
-  (-> (str code) str/upper-case (str/replace #"[\s\-_]" "")))
+  (-> (str code) str/upper (str/replace #"[\s\-_]" "")))
 
 (defn parse
   "Printable code -> `{:secret [16 bytes]}` or `{:error …}`. The errors are

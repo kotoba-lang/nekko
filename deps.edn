@@ -1,5 +1,10 @@
 {:paths ["src"]
- :deps {io.github.kotoba-lang/io-multiformats      {:git/sha "bbddb14908d39999a2523979ad9f5d46ec8a612d"}
+ :deps {
+        ;; kotoba.lang.text, not clojure.string. Pinned as an explicit floor:
+        ;; tools.deps takes the NEWEST sha it is shown, so without a floor here
+        ;; this repo silently rides whatever a sibling happens to name.
+        io.github.kotoba-lang/text {:git/sha "73bdb13ae7a3d004b44bca08be03a3191157a38f"}
+       io.github.kotoba-lang/io-multiformats      {:git/sha "bbddb14908d39999a2523979ad9f5d46ec8a612d"}
         io.github.kotoba-lang/org-ietf-cbor        {:git/sha "cf2066f8dfa67a2934365519745231b4f1673a1a"}
         io.github.kotoba-lang/io-ipld              {:git/sha "f99bf27d58a75bb8cf6ddfd2d57a0aaac9c824ac"}
         io.github.kotoba-lang/arrangement          {:git/sha "d1ef17edf4ac870b1e792bce9e6fe98e9eb96f7f"}
