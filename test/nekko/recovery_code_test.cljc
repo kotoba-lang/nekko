@@ -1,5 +1,5 @@
 (ns nekko.recovery-code-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.lang.text] [clojure.test :refer [deftest is testing]]
             [nekko.recovery-code :as rc]))
 
 (def ^:private known (vec (range 16)))          ; 00 01 02 … 0f
@@ -35,7 +35,7 @@
   (let [{:keys [code secret]} (rc/generate known)
         bare (rc/normalize code)]
     (is (= (vec secret) (:secret (rc/parse bare))) "hyphens are decoration")
-    (is (= (vec secret) (:secret (rc/parse (clojure.string/lower-case code)))) "case")
+    (is (= (vec secret) (:secret (rc/parse (kotoba.lang.text/lower code)))) "case")
     (is (= (vec secret) (:secret (rc/parse (str "  " code " ")))) "whitespace")))
 
 (deftest a-typo-is-reported-as-a-typo
