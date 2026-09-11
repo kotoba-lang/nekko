@@ -12,7 +12,7 @@
         io.github.kotoba-lang/org-ietf-ed25519     {:git/sha "6117bf17fceef4f95e33e6db2e0daa25553c0f0e"}
         io.github.kotoba-lang/org-chainagnostic-cacao {:git/sha "c70ba68f39c850f53cb20d1ac4915b1924d580f9"}}
  :aliases
- {;; same-monorepo dev: clojure -M:local:test (mirrors org-chainagnostic-cacao's pattern)
+ {;; same-monorepo dev: kbb -M:local:test (mirrors org-chainagnostic-cacao's pattern)
   :local {:override-deps {io.github.kotoba-lang/io-multiformats  {:local/root "../io-multiformats"}
                            io.github.kotoba-lang/org-ietf-cbor   {:local/root "../org-ietf-cbor"}
                            io.github.kotoba-lang/io-ipld         {:local/root "../io-ipld"}
