@@ -1,14 +1,14 @@
 #!/usr/bin/env nbb
 ;; The portable suite on nbb — no build step, no JVM.
 ;;
-;; `test/nekko/cljs_test_runner.cljs` is the OTHER ClojureScript host, and the
+;; `test/nekko/cljs_test_runner.cljk` is the OTHER ClojureScript host, and the
 ;; split between them is not arbitrary. That one compiles through cljs.main
 ;; because `chain.core`'s non-genesis commits carry `prev` as an
 ;; `ipld.core/Link` deftype whose field sci cannot read; the namespaces that
 ;; walk a chain therefore cannot run here, and are listed there instead.
 ;; Everything else can, and until 2026-08-17 was running on the JVM only.
 ;;
-;;   nbb --classpath "src:test:$(clojure -Spath)" test/run_portable.cljs
+;;   nbb --classpath "src:test:$(clojure -Spath)" test/run_portable.cljk
 ;;
 ;; The classpath needs `clojure -Spath` because this repo's siblings are git
 ;; deps; nbb does not resolve deps.edn. Filter it to directories — nbb cannot
