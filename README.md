@@ -62,7 +62,7 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   `test/nekko/recipient_grant_async_test.cljk` (`npm run test:async`, the
   first coverage of any kind over the :cljs branch) proves both directions
   under nbb — the one runtime with both backends live — and a
-  WebCrypto-sealed fixture is frozen into the JVM suite so `clojure -M:test`
+  WebCrypto-sealed fixture is frozen into the JVM suite so `kbb -M:test`
   guards the format too. Verified 2026-07-30 on all three hosts: JCA,
   node:crypto and WebCrypto open each other's grants.
 - **`nekko.keyslot`** — wrap one long-lived secret under N independent *unlock
@@ -271,12 +271,12 @@ system's ref updates, not just `kotoba-git`'s.
 `ed25519.core` and (transitively) parts of this repo's crypto-touching
 namespaces (`delegate`, `sigref`, `push-gate`, `announce`, `cacao-delegate`) are Clojure/JVM-only today —
 the upstream `org-ietf-ed25519` repo has no `:cljs` branch. `.cljc` file
-extensions here match sibling convention, but only `clojure -M:test`
+extensions here match sibling convention, but only `kbb -M:test`
 actually exercises this repo; there is no ClojureScript CI job.
 
 ## Testing
 
 ```
-clojure -M:test          # against the pinned :git/sha deps
-clojure -M:local:test    # against sibling checkouts in ../ (same-monorepo dev)
+kbb -M:test          # against the pinned :git/sha deps
+kbb -M:local:test    # against sibling checkouts in ../ (same-monorepo dev)
 ```

@@ -6,7 +6,7 @@
   rather than by eyeballing hex.
 
   This is the first test of any kind over `nekko.recipient-grant`'s :cljs
-  branch: `package.json`'s `test` script is `clojure -M:test`, which only ever
+  branch: `package.json`'s `test` script is `kbb -M:test`, which only ever
   compiled the :clj side.
 
   Run: npm run test:async"

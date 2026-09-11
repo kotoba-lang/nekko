@@ -1,6 +1,6 @@
 ;; nbb (ClojureScript-on-Node) smoke for R2's :cljs branch — run with sibling
 ;; checkouts (same layout as the :local alias):
-;;   nbb --classpath "src:../org-ietf-ed25519/src:../org-ietf-cbor/src:../org-chainagnostic-cacao/src" test/nbb_r2_smoke.cljk
+;;   kbb --backend sci --classpath "src:../org-ietf-ed25519/src:../org-ietf-cbor/src:../org-chainagnostic-cacao/src" test/nbb_r2_smoke.cljk
 ;; Exercises X25519 grant/open, epoch rotation (revoke-by-omission), and
 ;; private-object seal/open on the Node runtime. JVM⇄nbb equivalence was
 ;; verified cross-process when this landed (X25519 shared secrets + AES-256-GCM
