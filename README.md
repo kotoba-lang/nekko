@@ -59,7 +59,7 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   primitives are synchronous by construction and `nekko.bytes` reaches for
   `js/Buffer` + node:crypto, neither of which a browser has; for that reason
   this namespace carries its own byte helpers and requires nothing.
-  `test/nekko/recipient_grant_async_test.cljs` (`npm run test:async`, the
+  `test/nekko/recipient_grant_async_test.cljk` (`npm run test:async`, the
   first coverage of any kind over the :cljs branch) proves both directions
   under nbb — the one runtime with both backends live — and a
   WebCrypto-sealed fixture is frozen into the JVM suite so `clojure -M:test`

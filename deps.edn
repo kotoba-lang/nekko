@@ -24,7 +24,7 @@
   ;; run (chain.core's non-genesis commits encode `prev` as an ipld deftype,
   ;; whose field sci cannot read). Works off the git pins above -- it used to
   ;; need :local because those pins were stale enough that cljs rejected them;
-  ;; they were bumped instead. See test/nekko/cljs_test_runner.cljs.
+  ;; they were bumped instead. See test/nekko/cljs_test_runner.cljk.
   :cljs {:extra-paths ["test"]
          :extra-deps {org.clojure/clojurescript {:mvn/version "1.11.132"}}}
   :test {:extra-paths ["test"]
