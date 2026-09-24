@@ -7,3 +7,4 @@ out/
 .shadow-cljs/
 package-lock.json
 shadow-cljs.edn
+.nbb/

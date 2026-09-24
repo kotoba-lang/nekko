@@ -1,5 +1,5 @@
 (ns nekko.private-object-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [nekko.bytes :as b]
             [nekko.recipient-grant :as rg]
             [nekko.private-object :as po]))

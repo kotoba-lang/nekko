@@ -1,5 +1,5 @@
 (ns nekko.warrant-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [nekko.warrant :as warrant]))

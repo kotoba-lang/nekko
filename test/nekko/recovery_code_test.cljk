@@ -1,5 +1,5 @@
 (ns nekko.recovery-code-test
-  (:require [kotoba.lang.text] [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.lang.text] [kotoba.test :refer [deftest is testing]]
             [nekko.recovery-code :as rc]))
 
 (def ^:private known (vec (range 16)))          ; 00 01 02 … 0f

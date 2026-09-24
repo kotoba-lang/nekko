@@ -1,5 +1,5 @@
 (ns nekko.recipient-grant-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [nekko.bytes :as b]
             [nekko.recipient-grant :as rg]))
 
