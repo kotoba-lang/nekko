@@ -14,7 +14,13 @@
         io.github.kotoba-lang/arrangement          {:git/sha "d1ef17edf4ac870b1e792bce9e6fe98e9eb96f7f"}
         io.github.kotoba-lang/chain                {:git/sha "5545426442ddacc919836fe2e17936684529895b"}
         io.github.kotoba-lang/org-ietf-ed25519     {:git/sha "6117bf17fceef4f95e33e6db2e0daa25553c0f0e"}
-        io.github.kotoba-lang/org-chainagnostic-cacao {:git/sha "c70ba68f39c850f53cb20d1ac4915b1924d580f9"}}
+        ;; Push delegation (nekko.biscuit-delegate). Superproject
+        ;; adr-2609241800 ended CACAO as a grant format, so org-chainagnostic-cacao
+        ;; is gone from this map. org-biscuitsec 12148e0 is a floor: it folds
+        ;; `holder` across blocks, which sub-delegation relies on. authority is
+        ;; the decider; its sha is the one org-biscuitsec pins.
+        io.github.kotoba-lang/authority          {:git/sha "232eef9b7969aa5990f9b5e48b1184f078500781"}
+        io.github.kotoba-lang/org-biscuitsec     {:git/sha "12148e029497614f916b8745ac1b2871e2668ef1"}}
  :aliases
  {;; same-monorepo dev: kbb -M:local:test (mirrors org-chainagnostic-cacao's pattern)
   :local {:override-deps {io.github.kotoba-lang/io-multiformats  {:local/root "../io-multiformats"}
@@ -23,7 +29,8 @@
                            io.github.kotoba-lang/arrangement     {:local/root "../arrangement"}
                            io.github.kotoba-lang/chain           {:local/root "../chain"}
                            io.github.kotoba-lang/org-ietf-ed25519 {:local/root "../org-ietf-ed25519"}
-                           io.github.kotoba-lang/org-chainagnostic-cacao {:local/root "../org-chainagnostic-cacao"}}}
+                           io.github.kotoba-lang/authority       {:local/root "../authority"}
+                           io.github.kotoba-lang/org-biscuitsec  {:local/root "../org-biscuitsec"}}}
   ;; Real-ClojureScript host for nekko.key-journal's suite, which nbb cannot
   ;; run (chain.core's non-genesis commits encode `prev` as an ipld deftype,
   ;; whose field sci cannot read). Works off the git pins above -- it used to
