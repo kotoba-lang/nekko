@@ -1,5 +1,5 @@
 (ns nekko.push-gate-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
   [nekko.bytes :as nb]
             [ed25519.core :as ed]
             [cacao.core :as cacao]

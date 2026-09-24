@@ -1,5 +1,5 @@
 (ns nekko.journal-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
   [nekko.bytes :as nb]
             [nekko.journal :as journal]))
 

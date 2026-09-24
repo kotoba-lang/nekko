@@ -1,5 +1,5 @@
 (ns nekko.cacao-delegate-test
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
   [nekko.bytes :as nb]
             [cacao.core :as cacao]
             [ed25519.core :as ed]

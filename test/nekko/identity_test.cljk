@@ -1,5 +1,5 @@
 (ns nekko.identity-test
-  (:require [clojure.test :refer [deftest is]]
+  (:require [kotoba.test :refer [deftest is]]
             [nekko.identity :as identity]))
 
 (defn- new-store []
