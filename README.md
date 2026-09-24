@@ -145,22 +145,28 @@ kotobase-peer`, superproject `90-docs/adr/`). `kotoba-git` is the sibling
   needed — only this adapter. Neither repo depends on the other; they
   compose through p2p's documented plain-map message shape, the same way
   `kotoba-git`/`kotoba-rad` compose with each other.
-- **`kotoba-rad.cacao-delegate`** + **`kotoba-rad.push-gate/authorize-
-  push-cacao?`** — a second, journal-free authorization scheme: the owner
-  mints a `cacao.core` capability (root-first/leaf-last delegation chain,
-  CAIP-122/SIWE) granting a push-resource string to a delegate's did:key
-  (`push-resource`/`push-resource-wildcard`); the delegate can present
-  that chain — or mint a further sub-delegated link on top of it — to
-  prove authorization without the verifier ever fetching or replaying
-  `kotoba-rad.journal`. Sub-delegation cannot escalate resources
-  (`cacao.core/verify-chain`'s own `covers?` constraint enforces this).
-  This is a different trust model from `kotoba-rad.delegate`, not a
-  replacement — the journal is a shared, queryable ledger of who's
-  *currently* authorized (supports revocation); a CACAO chain is a bearer
-  capability the holder carries themselves (no revocation without an
-  expiry or a separate revocation list, but no journal lookup needed
-  either). Use whichever trust model fits: `authorize-push?` for the
-  journal, `authorize-push-cacao?` for a portable chain.
+- **`nekko.biscuit-delegate`** + **`nekko.push-gate/authorize-push-biscuit`**
+  — a second, journal-free authorization scheme: the owner signs a Biscuit
+  (`kotoba-lang/org-biscuitsec`) rooted at the owner's did:key, granting push
+  scopes (`push-resource` / `push-resource-wildcard`, parsed by the
+  `kotoba-lang/authority` lattice) and naming the delegate's did as the only
+  key that may append. The delegate presents it with a sigref, or attenuates
+  it: narrower scopes, an earlier expiry, and — once — a `holder`. A token
+  addressed to one holder is never re-addressed (`:holder-readdressed`), a
+  block claiming more than its parent refuses the token
+  (`:escalation-attempted`), an un-addressed token pushes nothing
+  (`:holder-absent`), and `:now` is required (no clock is a denial). Every
+  refusal returns its reason. Sub-delegation is: owner grants un-addressed to
+  A's key, A narrows and addresses it to B.
+  Until 2026-09-24 this was a CACAO chain (`cacao-delegate`,
+  `cacao.core/verify-chain`). Superproject adr-2609241800 ended CACAO as a
+  grant format — it is accepted only where Authn exchanges it for a session —
+  so the CACAO predicates are gone and a CACAO presented at this gate is
+  refused as `:cacao-not-accepted`.
+  This is a different trust model from `nekko.delegate`, not a replacement —
+  the journal is a shared, queryable ledger of who's *currently* authorized
+  (supports revocation); a Biscuit is a capability the holder carries
+  themselves (no revocation beyond its expiry, but no journal lookup either).
 - **`kotoba-rad.canonical`** — threshold synthesis over independently valid
   sigrefs. Duplicate votes by one delegate count once; invalid or unauthorized
   signatures are ignored; different commits both reaching quorum is an
@@ -197,15 +203,14 @@ system's ref updates, not just `kotoba-git`'s.
   missing is a real transport: p2p only ships an in-memory loopback
   reference transport; a real QUIC/WebRTC/WebTransport adapter is a host
   follow-up, not attempted here or there.
-- **No CACAO revocation.** `kotoba-rad.cacao-delegate` covers minting and
-  verifying delegation chains (including sub-delegation and resource-
-  escalation prevention), but a chain is only invalidated by its own
-  `exp` — there's no equivalent of `kotoba-rad.delegate/remove-delegate!`
-  for a CACAO-authorized holder (a real revocation list, or short-lived
-  chains re-minted on a schedule, would be the usual fix; neither is
-  built here).
+- **No token revocation.** `nekko.biscuit-delegate` covers granting and
+  verifying delegated push tokens (including sub-delegation and scope-
+  escalation refusal), but a token is only invalidated by its own
+  `before` — there's no equivalent of `nekko.delegate/remove-delegate!`
+  for a token holder (short-lived tokens re-issued on a schedule would be
+  the usual fix; not built here).
 - **No richer protected-branch policy beyond fast-forward.**
-  `authorize-push?`/`authorize-push-cacao?` check *who* signed, not
+  `authorize-push?`/`authorize-push-biscuit` check *who* signed, not
   policy about *what* ref updates are allowed once someone's authorized —
   `kotoba-git.ref-policy/set-ref-guarded!` now composes identity + the
   fast-forward-only shape check into one call (an injected `authorized?`
@@ -255,21 +260,21 @@ system's ref updates, not just `kotoba-git`'s.
                 :verify-announce? (announce/verify-announce-fn get-fn journal-head
                                                                 owner-did rid)})
 
-;; journal-free authorization via a CACAO delegation chain instead:
-(require '[kotoba-rad.cacao-delegate :as cacao-delegate]
-         '[cacao.core :as cacao])
-(def grant (:cacao-b64 (cacao/mint {:seed owner-seed :aud collab-did :nonce "n1"
-                                     :iat "2026-01-01T00:00:00Z" :exp "2099-01-01T00:00:00Z"
-                                     :resources [(cacao-delegate/push-resource-wildcard rid)]})))
+;; journal-free authorization via a Biscuit rooted at the owner instead:
+(require '[nekko.biscuit-delegate :as bd])
+(def grant (bd/grant owner-seed {:resources [(bd/push-resource-wildcard rid)]
+                                 :next-did collab-did :holder collab-did
+                                 :expires "2099-01-01T00:00:00Z"}))
 (def sr2 (sigref/sign collab-seed rid "refs/heads/main" "commit-cid-here" 2))
-(push-gate/authorize-push-cacao? [grant] owner-did rid "refs/heads/main"
-                                  "commit-cid-here" sr2) ;=> true, no journal consulted
+(push-gate/authorize-push-biscuit grant owner-did rid "refs/heads/main"
+                                  "commit-cid-here" sr2 {:now "2026-09-24T00:00:00Z"})
+;=> {:allowed? true :holder collab-did}, no journal consulted
 ```
 
 ## Note on ClojureScript
 
 `ed25519.core` and (transitively) parts of this repo's crypto-touching
-namespaces (`delegate`, `sigref`, `push-gate`, `announce`, `cacao-delegate`) are Clojure/JVM-only today —
+namespaces (`delegate`, `sigref`, `push-gate`, `announce`, `biscuit-delegate`) are Clojure/JVM-only today —
 the upstream `org-ietf-ed25519` repo has no `:cljs` branch. `.cljc` file
 extensions here match sibling convention, but only `kbb -M:test`
 actually exercises this repo; there is no ClojureScript CI job.

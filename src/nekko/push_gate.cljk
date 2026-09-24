@@ -5,7 +5,7 @@
    before adopting a proposed ref update."
   (:require [nekko.delegate :as delegate]
             [nekko.sigref :as sigref]
-            [nekko.cacao-delegate :as cacao-delegate]))
+            [nekko.biscuit-delegate :as biscuit-delegate]))
 
 (defn- sigref-matches?
   [sigref-map rid ref-name commit-cid]
@@ -27,54 +27,56 @@
   (and (sigref-matches? sigref-map rid ref-name commit-cid)
        (delegate/authorized? get-fn head-cid owner-did (get sigref-map "signer"))))
 
-(defn authorize-push-cacao?
-  "Like authorize-push?, but authorization comes from a self-contained
-   CACAO delegation chain (nekko.cacao-delegate/authorized-by-chain?,
-   root-first/leaf-last, rooted at owner-did) instead of consulting a
-   journal. The sigref still proves THIS specific ref update was attested
-   by the chain's holder; the chain proves that holder was ever allowed to
-   do so -- a portable, journal-free alternative to authorize-push?."
-  ([chain owner-did rid ref-name commit-cid sigref-map]
-   (authorize-push-cacao? chain owner-did rid ref-name commit-cid sigref-map nil))
-  ([chain owner-did rid ref-name commit-cid sigref-map cacao-opts]
-   (and (sigref-matches? sigref-map rid ref-name commit-cid)
-        (cacao-delegate/authorized-by-chain? chain owner-did rid ref-name
-                                              (get sigref-map "signer") cacao-opts))))
+(defn authorize-push-biscuit
+  "Like authorize-push?, but authorization comes from a Biscuit rooted at
+   owner-did (nekko.biscuit-delegate) instead of a journal. The sigref still
+   proves THIS specific ref update was attested by its signer; the token
+   proves that signer is the holder it was addressed to and that its scopes
+   cover the ref. opts: {:now <ISO-8601 UTC>} -- required; no clock is a
+   denial.
 
-(defn authorized-signers-cacao
+   -> {:allowed? bool :reason kw}. A CACAO chain presented here is refused
+   as :cacao-not-accepted (superproject adr-2609241800); the CACAO form of
+   this gate (authorize-push-cacao?) is gone."
+  [t owner-did rid ref-name commit-cid sigref-map opts]
+  (if-not (sigref-matches? sigref-map rid ref-name commit-cid)
+    {:allowed? false :reason :sigref-mismatch}
+    (biscuit-delegate/authorize-push t owner-did rid ref-name
+                                     (get sigref-map "signer") opts)))
+
+(defn authorize-push-biscuit?
+  "Boolean form of authorize-push-biscuit."
+  [t owner-did rid ref-name commit-cid sigref-map opts]
+  (true? (:allowed? (authorize-push-biscuit t owner-did rid ref-name commit-cid
+                                            sigref-map opts))))
+
+(defn authorized-signers-biscuit
   "The set of DISTINCT signer dids among approvals that each independently
-   pass authorize-push-cacao? for this exact (rid, ref-name, commit-cid)
-   update. approvals: a seq of {:sigref <sigref-map> :chain [cacao-b64 ...]}.
+   pass authorize-push-biscuit? for this exact (rid, ref-name, commit-cid)
+   update. approvals: a seq of {:sigref <sigref-map> :token <biscuit>}.
    opts:
+     :now           required, passed to every token check
      :exclude-dids  a set of dids whose approvals never count -- the
                     separation-of-duties hook (e.g. the proposer of the
                     change being merged, so self-approval cannot satisfy a
-                    quorum)
-     :cacao-opts    passed through to the chain check (e.g. {:now <ISO>}
-                    to enforce iat/exp bounds on every link)"
-  ([approvals owner-did rid ref-name commit-cid]
-   (authorized-signers-cacao approvals owner-did rid ref-name commit-cid nil))
-  ([approvals owner-did rid ref-name commit-cid {:keys [exclude-dids cacao-opts]}]
-   (into #{}
-         (comp (filter (fn [{:keys [sigref chain]}]
-                         (authorize-push-cacao? chain owner-did rid ref-name
-                                                commit-cid sigref cacao-opts)))
-               (map #(get-in % [:sigref "signer"]))
-               (remove (or exclude-dids #{})))
-         approvals)))
+                    quorum)"
+  [approvals owner-did rid ref-name commit-cid {:keys [exclude-dids] :as opts}]
+  (into #{}
+        (comp (filter (fn [{:keys [sigref token]}]
+                        (authorize-push-biscuit? token owner-did rid ref-name
+                                                 commit-cid sigref opts)))
+              (map #(get-in % [:sigref "signer"]))
+              (remove (or exclude-dids #{})))
+        approvals))
 
-(defn authorize-push-multi-cacao?
-  "Quorum form of authorize-push-cacao?: do at least min-signers DISTINCT
+(defn authorize-push-multi-biscuit?
+  "Quorum form of authorize-push-biscuit?: do at least min-signers DISTINCT
    authorized signers each attest this exact ref update? Distinctness is by
    the sigref's signer did, so the same delegate presenting two sigrefs (or
    a client retry duplicating one approval) still counts once. min-signers
    of 0 is authorized with no approvals at all -- the auto-merge tier a
    caller's own pre-checks (e.g. a machine governor) may grant to its
-   lowest-risk ref namespace. Same opts as authorized-signers-cacao;
-   :exclude-dids is how a caller bans self-approval (proposer's did never
-   counts toward the quorum)."
-  ([approvals min-signers owner-did rid ref-name commit-cid]
-   (authorize-push-multi-cacao? approvals min-signers owner-did rid ref-name commit-cid nil))
-  ([approvals min-signers owner-did rid ref-name commit-cid opts]
-   (>= (count (authorized-signers-cacao approvals owner-did rid ref-name commit-cid opts))
-       min-signers)))
+   lowest-risk ref namespace. Same opts as authorized-signers-biscuit."
+  [approvals min-signers owner-did rid ref-name commit-cid opts]
+  (>= (count (authorized-signers-biscuit approvals owner-did rid ref-name commit-cid opts))
+      min-signers))

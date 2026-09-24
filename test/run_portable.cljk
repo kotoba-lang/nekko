@@ -20,7 +20,7 @@
 (require '[cljs.test :as t]
          '[kotoba-rad.canonical-test]
          '[nekko.announce-test]
-         '[nekko.cacao-delegate-test]
+         '[nekko.biscuit-delegate-test]
          '[nekko.canonical-test]
          '[nekko.delegate-test]
          '[nekko.journal-test]
@@ -37,7 +37,7 @@
 
 (t/run-tests 'kotoba-rad.canonical-test
              'nekko.announce-test
-             'nekko.cacao-delegate-test
+             'nekko.biscuit-delegate-test
              'nekko.canonical-test
              'nekko.delegate-test
              'nekko.journal-test
