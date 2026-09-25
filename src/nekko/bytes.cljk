@@ -5,7 +5,8 @@
    cross-platform wire form for all keys / ciphertext."
   (:refer-clojure :exclude [cat])
   #?(:clj (:import (java.security MessageDigest SecureRandom))
-     :cljs (:require ["crypto" :as ncrypto])))
+     :cljs (:require ["crypto" :as ncrypto]))
+  (:require [kotoba.bytes :as kbytes]))
 
 (defn blen [b] #?(:clj (alength ^bytes b) :cljs (.-length b)))
 
@@ -25,7 +26,7 @@
      :cljs (js/Uint8Array. (js/Buffer.from s "hex"))))
 
 (defn utf8 [^String s]
-  #?(:clj (.getBytes s "UTF-8")
+  #?(:clj (kbytes/utf8-bytes s)
      :cljs (.encode (js/TextEncoder.) s)))
 
 (defn cat [a b]
